@@ -1,0 +1,117 @@
+<?php
+if(isset($_POST['send'])) {
+    $erros = [];
+    $_POST['lastname'] = trim($_POST['lastname']);
+    $_POST['firstname'] = trim($_POST['firstname']);
+    $_POST['patronymic'] = trim($_POST['patronymic']);
+    $_POST['passSerie'] = trim($_POST['passSerie']);
+    $_POST['passNumber'] = trim($_POST['passNumber']);
+
+    if(empty($_POST['lastname'])) {
+        $errors[] = "lastname is empty";
+    }
+    if(empty($_POST['firstname'])) {
+        $errors[] = "firstname is empty";
+    }
+    if(empty($_POST['patronymic'])) {
+        $errors[] = "patronymic is empty";
+    }
+    if(empty($_POST['passSerie'])) {
+        $errors[] = "passport serie is empty";
+    } elseif(mb_strlen($_POST['passSerie']) > 4) {
+    $errors[] = "password serie is too long";
+    } elseif(mb_strlen($_POST['passSerie']) < 4) {
+        $errors[] = "password serie is too short";
+    }
+    if(empty($_POST['passNumber'])) {
+        $errors[] = "passport number is empty";
+    } elseif(mb_strlen($_POST['passNumber']) < 6) {
+        $errors[] = "password number is too short";
+    } elseif(mb_strlen($_POST['passNumber']) > 6) {
+        $errors[] = "password number is too long";
+    }
+    if(!isset($_POST['dayOfBirth'])) {
+        $errors[] = "day of birth is not isset";
+    }
+    if(!isset($_POST['monthOfBirth'])) {
+        $errors[] = "month of birth is not isset";
+    }
+    if(!isset($_POST['movieGenres'])) {
+        $errors[] = "favourite movie genres are not isset";
+    }
+    if(!isset($_POST['salary'])) {
+        $errors[] = "salary is not isset";
+    }
+    if(!isset($_POST['marriageStatus'])) {
+        $errors[] = "marriage status is not isset";
+    }
+
+    if(!empty($errors)) {
+        foreach ($errors as $error) {
+            echo $error."<br>";
+        }
+    } else {
+        $txt = $_POST['lastname'].", ".$_POST['firstname'].", ".$_POST['patronymic'].", ".$_POST['passSerie'].", ".$_POST['passNumber'].", ".$_POST['dayOfBirth'].", ".$_POST['monthOfBirth'].", ".$_POST['salary'].", ".$_POST['marriageStatus'].", ";
+
+        foreach ($_POST['movieGenres'] as $value) {
+            $txt .= $value.", ";
+        }
+        $txt = mb_substr($txt,0,-2);
+        if(mail("anne.kirienko@gmail.com", "Заявка с сайта", $txt)) {
+            echo "mail is submitted";
+        }
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+<form action="" method="POST" id="form">
+    <p>My lastname, firstname and patronymic are:</p>
+    <input type="text" name="lastname" placeholder="Lastname" value="<?php echo @$_POST['lastname'];?>"><br>
+    <input type="text" name="firstname" placeholder="Firstname" value="<?php echo @$_POST['firstname'];?>"><br>
+    <input type="text" name="patronymic" placeholder="Patronymic" value="<?php echo @$_POST['patronymic'];?>"><br>
+    <p>My passport data is:</p>
+    <input type="number" name="passSerie" placeholder="Passport Serie" value="<?php echo @$_POST['passSerie'];?>">
+    <input type="number" name="passNumber" placeholder="Passport Number" value="<?php echo @$_POST['passNumber'];?>"><br>
+    <p>I was born in:</p>
+    <select name="dayOfBirth">
+        <option disabled selected>Choose the day of your birth</option>
+        <option value="1" <?php echo @$_POST['dayOfBirth'] == "1" ? "selected" : ""?>>1</option>
+        <option value="2" <?php echo @$_POST['dayOfBirth'] == "2" ? "selected" : ""?>>2</option>
+        <option value="3" <?php echo @$_POST['dayOfBirth'] == "3" ? "selected" : ""?>>3</option>
+    </select><br>
+    <select name="monthOfBirth">
+        <option disabled selected>Choose the month of your birth</option>
+        <option value="1" <?php echo @$_POST['monthOfBirth'] == "1" ? "selected" : ""?>>January</option>
+        <option value="2" <?php echo @$_POST['monthOfBirth'] == "2" ? "selected" : ""?>>February</option>
+        <option value="3" <?php echo @$_POST['monthOfBirth'] == "3" ? "selected" : ""?>>March</option>
+        <option value="4" <?php echo @$_POST['monthOfBirth'] == "3" ? "selected" : ""?>>April</option>
+        <option value="5" <?php echo @$_POST['monthOfBirth'] == "3" ? "selected" : ""?>>May</option>
+        <option value="6" <?php echo @$_POST['monthOfBirth'] == "3" ? "selected" : ""?>>June</option>
+        <option value="7" <?php echo @$_POST['monthOfBirth'] == "3" ? "selected" : ""?>>July</option>
+        <option value="8" <?php echo @$_POST['monthOfBirth'] == "3" ? "selected" : ""?>>August</option>
+        <option value="9" <?php echo @$_POST['monthOfBirth'] == "3" ? "selected" : ""?>>September</option>
+        <option value="10" <?php echo @$_POST['monthOfBirth'] == "3" ? "selected" : ""?>>October</option>
+        <option value="11" <?php echo @$_POST['monthOfBirth'] == "3" ? "selected" : ""?>>November</option>
+        <option value="12" <?php echo @$_POST['monthOfBirth'] == "3" ? "selected" : ""?>>December</option>
+    </select><br>
+    <p>My favourite movie genres are:</p>
+    <input type="checkbox" name="movieGenres[0]" value="horror" id="horror" <?php echo @in_array("horror", $_POST['movieGenres']) ? "checked" : ""?>><label for="horror"> Horror</label><br>
+    <input type="checkbox" name="movieGenres[1]" value="drama" id="drama" <?php echo @in_array("drama", $_POST['movieGenres']) ? "checked" : ""?>> <label for="drama"> Drama</label><br>
+    <input type="checkbox" name="movieGenres[2]" value="comedy" id="comedy" <?php echo @in_array("comedy", $_POST['movieGenres']) ? "checked" : ""?>> <label for="comedy"> Comedy</label><br>
+    <input type="checkbox" name="movieGenres[3]" value="western" id="western" <?php echo @in_array("western", $_POST['movieGenres']) ? "checked" : ""?>> <label for="western"> Western</label><br>
+    <p>My marriage status is:</p>
+    <input type="radio" name="marriageStatus" value="m" <?php echo @$_POST['marriageStatus'] == "m" ? "checked" : ""?>>married
+    <input type="radio" name="marriageStatus" value="s" <?php echo @$_POST['marriageStatus'] == "s" ? "checked" : ""?>> single<br>
+    <p>My annual income is:</p>
+    <input type="radio" name="salary" value="min" <?php echo @$_POST['salary'] == "min" ? "checked" : ""?>>My salary is under $30k per year
+    <input type="radio" name="salary" value="max" <?php echo @$_POST['salary'] == "max" ? "checked" : ""?>> My salary is between $30k and $50k per year<br><br>
+    <input type="submit" name="send" value="Send">
+</form>
+</body>
+</html>
