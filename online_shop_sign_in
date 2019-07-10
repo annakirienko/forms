@@ -1,0 +1,88 @@
+<?php
+require "connect_registration.php";
+if(isset($_POST['send'])) {
+    $errors = [];
+    $_POST['firstname'] = trim($_POST['firstname']);
+    $_POST['lastname'] = trim($_POST['lastname']);
+    $_POST['pass'] = trim($_POST['pass']);
+    $_POST['email'] = trim($_POST['email']);
+
+    if(empty($_POST['firstname'])) {
+        $errors[] = "firstname is empty";
+    }
+    if(empty($_POST['lastname'])) {
+        $errors[] = "lastname is empty";
+    }
+    if(empty($_POST['pass'])) {
+        $errors[] = "password is empty";
+    } elseif(mb_strlen($_POST['pass']) < 6) {
+        $errors[] = "password is small";
+    }
+    if(empty($_POST['email'])) {
+        $errors[] = "email is empty";
+    }
+
+    if(!empty($errors)) {
+        foreach ($errors as $error) {
+            echo $error."<br>";
+        }
+    } else {
+        $sql = "INSERT INTO users (id, firstname, lastname, email, password)
+                VALUES (null, ?, ?, ?, ?)";
+        $stmt = $pdo->prepare($sql);
+        $sql_error = false;
+        try {
+            $pdo->beginTransaction();
+            $stmt->execute([$_POST["firstname"], $_POST["lastname"], $_POST["email"], $_POST["pass"]]);
+            $user_id = $pdo->lastInsertId();
+            $sql = "INSERT INTO users_abilities (user_id, ability_id) VALUES (?, ?)";
+            $stmt = $pdo->prepare($sql);
+            foreach ($_POST["abilities"] as $ability_id) {
+                $stmt->execute([$user_id, $ability_id]);
+            }
+            $pdo->commit();
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            var_dump($e);
+            if ($e->errorInfo[1] == 1062) {
+                echo "Дублирующая запись.";
+            } elseif ($e->errorInfo[1] == 1136) {
+                echo "Количество столбцов не совпадает с количеством значений.";
+            } else {
+                echo "Ошибка при запросе в БД, обратитесь к разработчику.";
+            }
+            $sql_error = true;
+            file_put_contents("error.log", $e->getMessage());
+        }
+        if($sql_error == false && $stmt->rowCount() > 0) {
+            header("Location: tienda_registration_success_form.php");
+            exit;
+        }
+    }
+}
+$sql = "SELECT * FROM abilities";
+$stmt = $pdo->query($sql);
+$abilities = $stmt->fetchAll();
+
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+<form action="" method="POST" id="form">
+    <input type="text" name="firstname" placeholder="Firstname" value="<?php echo @$_POST['firstname'];?>"><br>
+    <input type="text" name="lastname" placeholder="Lastname" value="<?php echo @$_POST['lastname'];?>"><br>
+    <input type="password" name="pass" placeholder="Password"><br>
+    <input type="email" name="email"  placeholder="Email" value="<?php echo @$_POST['email'];?>"><br>
+    <?php foreach ($abilities as $ability): ?>
+    <input type="checkbox" name="abilities[]" value = "<?php echo $ability["id"]; ?>" > <?php echo $ability["name"]; ?>
+    <?php endforeach; ?>
+    <br>
+    <input type="submit" name="send" value="Послать">
+</form>
+</body>
+</html>
+
