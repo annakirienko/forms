@@ -1,0 +1,27 @@
+<?php
+require "connect.php";
+if (isset($_GET["uid"])) {
+    $sql = "DELETE FROM `users` WHERE `users`.`id` = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$_GET["uid"]]);
+    $sql = "DELETE FROM `users_abilities` WHERE `users_abilities`.`user_id` = ?";
+    $stmt2 = $pdo->prepare($sql);
+    $stmt2->execute([$_GET["uid"]]);
+    if ($stmt->rowCount() == 0) {
+        echo "Пользователя не существует.";
+    }
+    else {
+        echo "Пользователь удален!";
+    }
+    header("Refresh: 3; url = get_users.php", true, 303);
+    exit;
+    echo "<br>";
+    echo "<br>";
+}
+$sql = "SELECT users.id, users.firstname, users.lastname FROM users";
+$stmt = $pdo->query($sql);
+$users = $stmt->fetchAll();
+foreach ($users as $user) {
+    echo $user["firstname"]." ".$user["lastname"]." - <a href='?uid=".$user["id"]."'>Удалить</a>";
+    echo "<br>";
+}
