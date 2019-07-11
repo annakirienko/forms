@@ -1,0 +1,38 @@
+<?php
+require "connect.php";
+$sql = "SELECT users.id, users.firstname, users.lastname, COUNT(orders.user_id) AS quantity FROM users, orders WHERE users.id = orders.user_id GROUP BY orders.user_id";
+$stmt = $pdo->query($sql);
+$users = $stmt->fetchAll();
+foreach ($users as $user) {
+    echo $user["firstname"]." ".$user["lastname"]." - <a href='?u_id=".$user["id"]."'>".$user["quantity"]."</a>";
+    echo "<br>";
+}
+if (isset($_GET["u_id"])) {
+    echo "<hr>";
+    $sql = "SELECT firstname, lastname FROM users WHERE id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$_GET["u_id"]]);
+    $user = $stmt->fetch();
+    echo $user["firstname"]." ".$user["lastname"].":";
+    echo "<br>";
+    $sql = "SELECT * FROM orders WHERE orders.user_id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$_GET["u_id"]]);
+    $orders = $stmt->fetchAll();
+    foreach ($orders as $order) {
+        echo $order["address"] . ", " . $order["status"] . ", " . $order["created_at"];
+        echo "<br>";
+        $sql = "SELECT orders_products.quantity, orders_products.price, products.name, products.category_id, categories.name AS ctg_name, orders_products.quantity*orders_products.price AS total FROM products, orders_products, categories WHERE products.id = orders_products.product_id AND categories.id = products.category_id AND orders_products.order_id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$order["id"]]);
+        $products = $stmt->fetchAll();
+        $total = 0;
+        foreach ($products as $product) {
+            echo "&nbsp;&nbsp;&nbsp;&nbsp;".$product["name"]." (".$product["ctg_name"]."), ".$product["price"].", ".$product["quantity"]." - ".$product["total"].";";
+            echo "<br>";
+            $total = $total + $product["total"];
+        }
+        echo "Total: ".$total;
+        echo "<br>";
+    }
+}
